@@ -16,6 +16,7 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
@@ -92,16 +93,23 @@ public class MainActivity extends ActivityDispatcher {
 		}, accelerometer, SensorManager.SENSOR_DELAY_GAME);
 	}
 	
+	private static String NL = String.format("%n");
+	
 	private synchronized void send(float [] values){
 		if(!sending){
 			
 			sending = true;
-			HttpPost post = new HttpPost("http://192.168.1.212:8080/dispatcher-server/pub");
+			HttpPost post = new HttpPost("http://192.168.1.160:8080/beats-server/pub");
 			List<NameValuePair> paramList = new ArrayList<NameValuePair>();
 			paramList.add(new BasicNameValuePair("values", Arrays.toString(values)));
 			try {
-				UrlEncodedFormEntity entity = new UrlEncodedFormEntity(paramList);
-				post.setEntity(entity);
+				//UrlEncodedFormEntity entity = new UrlEncodedFormEntity(paramList);
+				
+				
+				StringBuffer sb = new  StringBuffer(String.format("player-0%n"));
+				sb.append(String.format("LINEAR_ACCELERATION,%d,%f,%f,%f", System.currentTimeMillis(), values[0], values[1], values[2]));
+				StringEntity se = new StringEntity(sb.toString());
+				post.setEntity(se);
 				
 				AsyncTask<HttpPost, Integer, Integer> at = new AsyncTask<HttpPost, Integer, Integer>(){
 
@@ -110,7 +118,6 @@ public class MainActivity extends ActivityDispatcher {
 						try {
 							
 							client.execute(params[0]);
-							System.out.println("Sent!");
 						} catch (ClientProtocolException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
